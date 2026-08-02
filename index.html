@@ -1,117 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-<title>Mine By Sam - 3D Block Game</title>
+
+<meta charset="UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body{
-    margin:0;
-    overflow:hidden;
-    background:#87CEEB;
-    font-family:Arial;
-}
+<title>Mine By Sam 3D</title>
 
-#title{
-    position:absolute;
-    top:10px;
-    left:15px;
-    color:white;
-    font-size:28px;
-    z-index:2;
-}
-
-canvas{
-    display:block;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 
 </head>
 
+
 <body>
 
-<div id="title">Mine By Sam</div>
 
-<canvas id="game"></canvas>
+<div id="gameUI">
 
-<script>
-
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-
-canvas.width=innerWidth;
-canvas.height=innerHeight;
-
-let player={
-    x:canvas.width/2,
-    y:100,
-    size:40,
-    color:"red"
-};
-
-let blocks=[];
-
-for(let x=0;x<12;x++){
-    for(let y=0;y<5;y++){
-        blocks.push({
-            x:x*50+100,
-            y:canvas.height-100-y*50,
-            size:50
-        });
-    }
-}
-
-function drawWorld(){
-
-ctx.clearRect(0,0,canvas.width,canvas.height);
-
-blocks.forEach(b=>{
-    ctx.fillStyle="#55aa33";
-    ctx.fillRect(b.x,b.y,b.size,b.size);
-
-    ctx.strokeStyle="#333";
-    ctx.strokeRect(b.x,b.y,b.size,b.size);
-});
+<h1 id="title">
+⛏ Mine By Sam 3D
+</h1>
 
 
-ctx.fillStyle=player.color;
-ctx.fillRect(
-player.x,
-player.y,
-player.size,
-player.size
-);
-
-}
+<div id="stats">
+❤️ Health: 100 |
+🧱 Blocks: 64
+</div>
 
 
-document.addEventListener("keydown",e=>{
+<div id="inventory">
 
-if(e.key=="ArrowLeft"){
-    player.x-=20;
-}
+<div class="slot">🟩</div>
+<div class="slot">🟫</div>
+<div class="slot">⬜</div>
+<div class="slot">🪵</div>
 
-if(e.key=="ArrowRight"){
-    player.x+=20;
-}
-
-if(e.key=="ArrowUp"){
-    player.y-=20;
-}
-
-if(e.key=="ArrowDown"){
-    player.y+=20;
-}
-
-drawWorld();
-
-});
+</div>
 
 
-drawWorld();
+<div id="mobileControls">
 
-</script>
+<button id="left">⬅</button>
+<button id="forward">⬆</button>
+<button id="right">➡</button>
+<button id="back">⬇</button>
+
+</div>
+
+
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script src="game.js"></script>
+
 
 </body>
+
 </html>
