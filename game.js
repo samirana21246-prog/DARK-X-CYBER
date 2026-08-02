@@ -1,219 +1,267 @@
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+let scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
 
-function resize(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+
+let camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth / window.innerHeight,
+0.1,
+1000
+);
+
+
+let renderer = new THREE.WebGLRenderer({
+antialias:true
+});
+
+renderer.setSize(
+window.innerWidth,
+window.innerHeight
+);
+
+document.body.appendChild(renderer.domElement);
+
+
+// LIGHT
+
+let sun = new THREE.DirectionalLight(
+0xffffff,
+1
+);
+
+sun.position.set(10,20,10);
+scene.add(sun);
+
+scene.add(
+new THREE.AmbientLight(0xffffff,0.4)
+);
+
+
+// BLOCK SYSTEM
+
+let blocks=[];
+
+
+function addBlock(x,y,z,type){
+
+let color;
+
+if(type=="grass")
+color=0x55aa33;
+
+if(type=="dirt")
+color=0x8b4513;
+
+if(type=="stone")
+color=0x777777;
+
+
+let geometry =
+new THREE.BoxGeometry(
+1,1,1
+);
+
+
+let material =
+new THREE.MeshLambertMaterial({
+color:color
+});
+
+
+let cube =
+new THREE.Mesh(
+geometry,
+material
+);
+
+
+cube.position.set(
+x,y,z
+);
+
+
+scene.add(cube);
+
+blocks.push(cube);
+
 }
-resize();
-window.addEventListener("resize",resize);
+
+
+// WORLD GENERATION
+
+for(let x=-15;x<=15;x++){
+
+for(let z=-15;z<=15;z++){
+
+addBlock(
+x,
+0,
+z,
+"grass"
+);
+
+
+addBlock(
+x,
+-1,
+z,
+"dirt"
+);
+
+
+if(Math.random()>0.8){
+
+addBlock(
+x,
+1,
+z,
+"stone"
+);
+
+}
+
+}
+
+}
 
 
 // PLAYER
+
 let player = {
-    x:0,
-    y:0,
-    size:40,
-    speed:6,
-    color:"#ff3333"
+
+x:0,
+y:2,
+z:5,
+speed:0.15
+
 };
+
+
+let playerMesh =
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+0.8,1.8,0.8
+),
+
+new THREE.MeshLambertMaterial({
+color:0xff0000
+})
+
+);
+
+
+scene.add(playerMesh);
 
 
 // CAMERA
-let camera={
-    x:0,
-    y:0
-};
 
-
-// WORLD
-let world=[];
-let blockSize=50;
-let worldWidth=40;
-let worldHeight=12;
-
-
-// BLOCK TYPES
-const blocks={
-    grass:"#55aa33",
-    dirt:"#8b4513",
-    stone:"#777",
-    wood:"#a0522d"
-};
-
-
-// CREATE WORLD
-function createWorld(){
-
-    for(let x=0;x<worldWidth;x++){
-
-        let ground=Math.floor(Math.random()*3)+7;
-
-        for(let y=0;y<worldHeight;y++){
-
-            if(y>=ground){
-
-                let type="dirt";
-
-                if(y===ground)
-                    type="grass";
-
-                if(y>ground+3)
-                    type="stone";
-
-
-                world.push({
-                    x:x*blockSize,
-                    y:y*blockSize,
-                    type:type
-                });
-            }
-        }
-    }
-
-}
-
-createWorld();
+camera.position.set(
+0,
+4,
+8
+);
 
 
 // CONTROLS
+
 let keys={};
 
-document.addEventListener("keydown",e=>{
-    keys[e.key]=true;
-});
 
-document.addEventListener("keyup",e=>{
-    keys[e.key]=false;
-});
-
-
-// TOUCH BUTTONS
-function move(dir){
-
-    if(dir==="left")
-        player.x-=player.speed;
-
-    if(dir==="right")
-        player.x+=player.speed;
-
-    if(dir==="up")
-        player.y-=player.speed;
-
-    if(dir==="down")
-        player.y+=player.speed;
+document.addEventListener(
+"keydown",
+e=>{
+keys[e.key]=true;
 }
+);
 
 
-// BLOCK PLACE
-canvas.addEventListener("click",function(e){
-
-    let x=Math.floor(
-        (e.clientX+camera.x)/blockSize
-    )*blockSize;
-
-    let y=Math.floor(
-        (e.clientY+camera.y)/blockSize
-    )*blockSize;
+document.addEventListener(
+"keyup",
+e=>{
+keys[e.key]=false;
+}
+);
 
 
-    world.push({
-        x:x,
-        y:y,
-        type:"grass"
-    });
+// MOVE
 
-});
+function updatePlayer(){
 
-
-// UPDATE
-function update(){
-
-    if(keys["ArrowLeft"])
-        player.x-=player.speed;
-
-    if(keys["ArrowRight"])
-        player.x+=player.speed;
-
-    if(keys["ArrowUp"])
-        player.y-=player.speed;
-
-    if(keys["ArrowDown"])
-        player.y+=player.speed;
+if(keys["w"] || keys["ArrowUp"])
+player.z-=player.speed;
 
 
-    camera.x=player.x-canvas.width/2;
-    camera.y=player.y-canvas.height/2;
+if(keys["s"] || keys["ArrowDown"])
+player.z+=player.speed;
+
+
+if(keys["a"] || keys["ArrowLeft"])
+player.x-=player.speed;
+
+
+if(keys["d"] || keys["ArrowRight"])
+player.x+=player.speed;
+
+
+
+playerMesh.position.set(
+player.x,
+player.y,
+player.z
+);
+
+
+camera.position.set(
+player.x,
+player.y+3,
+player.z+7
+);
+
+
+camera.lookAt(
+playerMesh.position
+);
 
 }
 
 
-// DRAW
-function draw(){
 
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+// RESIZE
 
+window.addEventListener(
+"resize",
+()=>{
 
-    // WORLD DRAW
+camera.aspect=
+window.innerWidth/window.innerHeight;
 
-    world.forEach(block=>{
-
-        let x=block.x-camera.x;
-        let y=block.y-camera.y;
+camera.updateProjectionMatrix();
 
 
-        ctx.fillStyle=blocks[block.type];
+renderer.setSize(
+window.innerWidth,
+window.innerHeight
+);
 
-        ctx.fillRect(
-            x,
-            y,
-            blockSize,
-            blockSize
-        );
+});
 
-
-        ctx.strokeStyle="#222";
-
-        ctx.strokeRect(
-            x,
-            y,
-            blockSize,
-            blockSize
-        );
-
-    });
-
-
-
-    // PLAYER DRAW
-
-    ctx.fillStyle=player.color;
-
-    ctx.fillRect(
-        player.x-camera.x,
-        player.y-camera.y,
-        player.size,
-        player.size
-    );
-
-
-    requestAnimationFrame(loop);
-
-}
 
 
 // GAME LOOP
-function loop(){
 
-    update();
-    draw();
+function animate(){
+
+requestAnimationFrame(animate);
+
+updatePlayer();
+
+renderer.render(
+scene,
+camera
+);
 
 }
 
 
-loop();
+animate();
